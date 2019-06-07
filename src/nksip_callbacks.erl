@@ -51,6 +51,7 @@
 -export([nksip_connection_sent/2, nksip_connection_recv/2]).
 % -export([handle_call/3, handle_cast/2, handle_info/2]).
 -export([nksip_debug/3]).
+-export([log_level/0]).
 
 -type continue() :: continue | {continue, list()}.
 
@@ -804,3 +805,13 @@ nksip_transport_uas_sent(_Resp) ->
 nksip_debug(_PkgId, _CallId, _Info) ->
     ok.
 
+
+%%----------------------------------------------------------------
+%% @doc Called before logging
+%% @end
+%%----------------------------------------------------------------
+-spec log_level() -> Level when
+      Level :: debug | info | notice | warning | error | critical | alert | emergency.
+
+log_level() ->
+    notice.

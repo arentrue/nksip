@@ -40,24 +40,30 @@
         _ -> ok
     end).
 
-
 -define(CALL_LOG(Type, Txt, Args),
-    lager:Type("NkSIP CALL " ++ Txt, Args)).
+   case ?INT_LEVEL(Type) =< 5 of %% warning: 5.
+       true -> lager:Type("NkSIP CALL " ++ Txt, Args);
+       _ -> ok
+   end).
 
 
 -define(CALL_LOG(Type, Txt, Args, Call),
-    lager:Type(
-        [
-            {package, Call#call.srv_id},
-            {call_id, Call#call.call_id}
-        ],
-        "NKSIP CALL '~s' (~s) " ++ Txt,
-        [
-            Call#call.call_id,
-            Call#call.srv_id |
-            Args
-        ]
-    )).
+   case ?INT_LEVEL(Type) =< ?INT_LEVEL(?GET_LOG_LEVEL(Call#call.srv_id)) of
+       true ->
+           lager:Type(
+           [
+               {package, Call#call.srv_id},
+               {call_id, Call#call.call_id}
+           ],
+           "NKSIP CALL '~s' (~s) " ++ Txt,
+           [
+               Call#call.call_id,
+               Call#call.srv_id |
+               Args
+           ]);
+       _ ->
+           ok
+   end).
 
 
 -type prack() :: {

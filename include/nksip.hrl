@@ -98,25 +98,36 @@
         _ -> ok
     end).
 
+-define(INT_LEVEL(Level), element(2, nklib_syntax:spec(log_level, Level))).
+-define(GET_LOG_LEVEL(SrvId), apply((SrvId):nkserver_dispatcher(), log_level, [])).
 
 -define(SIP_LOG(Type, Txt, Args),
-    lager:Type("NkSIP " ++ Txt, Args)).
+   case ?INT_LEVEL(Type) =< 5 of %% warning: 5.
+       true -> lager:Type("NkSIP " ++ Txt, Args);
+       _ -> ok
+   end).
 
 
 -define(SIP_LOG(Type, Txt, Args, SipMsg),
-    lager:Type(
-        [
-            {srv, SipMsg#sipmsg.srv},
-            {package, SipMsg#sipmsg.srv_id},
-            {call_id, SipMsg#sipmsg.call_id}
-        ],
-        "NKSIP (~s/~s/~s) " ++ Txt,
-        [
-            SipMsg#sipmsg.srv,
-            SipMsg#sipmsg.srv_id,
-            SipMsg#sipmsg.call_id
-        ]
-    )).
+   {ok, SrvLevel} = nklib_syntax:spec(log_level, ),
+   {ok, TypeLevel} = nklib_syntax:spec(log_level, Type),
+   case ?INT_LEVEL(Type) =< ?INT_LEVEL(?GET_LOG_LEVEL(SipMsg#sipmsg.srv_id)) of
+       true ->
+           lager:Type(
+           [
+               {srv, SipMsg#sipmsg.srv},
+               {package, SipMsg#sipmsg.srv_id},
+               {call_id, SipMsg#sipmsg.call_id}
+           ],
+           "NKSIP (~s/~s/~s) " ++ Txt,
+           [
+               SipMsg#sipmsg.srv,
+               SipMsg#sipmsg.srv_id,
+               SipMsg#sipmsg.call_id
+           ]);
+       _ ->
+           ok
+    end).
 
 
 
